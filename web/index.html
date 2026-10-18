@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Polymarket V2 Funnel — MetaMask</title>
+<style>
+  :root { color-scheme: dark; }
+  body { font: 15px/1.5 -apple-system, system-ui, sans-serif; max-width: 760px; margin: 32px auto;
+         padding: 0 16px; background: #0e1116; color: #e6edf3; }
+  h1 { font-size: 20px; } h2 { font-size: 15px; color: #9aa7b4; margin: 22px 0 8px; text-transform: uppercase; letter-spacing: .04em; }
+  .card { background: #161b22; border: 1px solid #2d333b; border-radius: 10px; padding: 16px; margin: 12px 0; }
+  button { background: #2f81f7; color: #fff; border: 0; border-radius: 7px; padding: 8px 14px; font-size: 14px; cursor: pointer; }
+  button:disabled { background: #30363d; color: #768390; cursor: not-allowed; }
+  .row { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 24px; }
+  .grid div { display: flex; justify-content: space-between; border-bottom: 1px solid #21262d; padding: 4px 0; }
+  .grid b { color: #fff; }
+  .ok { color: #3fb950; } .bad { color: #f85149; } .big { font-size: 16px; }
+  .action { display: flex; justify-content: space-between; align-items: center; gap: 12px;
+            border: 1px solid #2d333b; border-radius: 8px; padding: 10px 12px; margin: 8px 0; }
+  small { color: #768390; }
+  input { background: #0d1117; border: 1px solid #30363d; color: #e6edf3; border-radius: 6px; padding: 6px 8px; width: 90px; font-size: 14px; }
+  #log { font: 12px/1.5 ui-monospace, monospace; max-height: 180px; overflow: auto; }
+  #log a { color: #58a6ff; } code { color: #d2a8ff; }
+  .warn { background: #341a00; border: 1px solid #9e6a03; color: #e3b341; padding: 8px 12px; border-radius: 7px; }
+</style>
+</head>
+<body>
+  <h1>Polymarket V2 — fund &amp; approve via MetaMask</h1>
+  <p><small>Walks <code>native USDC → USDC.e → pUSD → approve</code> so the Polymarket CLOB
+  sees your collateral. <b>Your key stays in MetaMask</b> — this page only builds transactions; MetaMask
+  shows and signs each one. Read-only otherwise.</small></p>
+
+  <div class="card">
+    <div class="row">
+      <div>Wallet: <b id="acct">not connected</b></div>
+      <div><button id="connectBtn">Connect MetaMask</button></div>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <div>Network: <span id="net">—</span> <button id="switchBtn" style="display:none">Switch to Polygon</button></div>
+      <div>Target: $<input id="amount" value="5" inputmode="decimal"> <span id="amtErr" class="bad"></span></div>
+    </div>
+  </div>
+
+  <h2>Funnel balances</h2>
+  <div class="card grid">
+    <div><span>native USDC</span><b id="bNative">—</b></div>
+    <div><span>USDC.e</span><b id="bUsdce">—</b></div>
+    <div><span>pUSD <small>(CLOB reads this)</small></span><b id="bPusd">—</b></div>
+    <div><span>POL (gas)</span><b id="bMatic">—</b></div>
+  </div>
+  <div id="gasWarn" class="warn" style="display:none">⚠️ 0 POL — you need a little POL for gas. Send ~0.2 POL to this wallet first.</div>
+  <p id="quote"><small>connect to see the live swap quote</small></p>
+
+  <h2>Steps <button id="refreshBtn" style="font-size:12px;padding:4px 10px">↻ refresh</button></h2>
+  <div id="actions" class="card"><small>connect MetaMask to compute the steps</small></div>
+
+  <h2>Activity</h2>
+  <div class="card"><div id="log"><small>—</small></div></div>
+
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
