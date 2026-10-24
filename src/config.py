@@ -86,7 +86,6 @@ class Config:
     bankroll_usd: float = 1000.0
     cities: List[str] = field(default_factory=lambda: ["nyc"])
     default_venue: str = "kalshi"
-    enable_entries: bool = True
 
     # ---- Venue gating ----
     enable_polymarket: bool = False
@@ -153,7 +152,6 @@ class Config:
             bankroll_usd=_env_float("WP_BANKROLL_USD", 1000.0),
             cities=_env_list("WP_CITIES", ["nyc"]),
             default_venue=venue,
-            enable_entries=_env_bool("WP_ENABLE_ENTRIES", True),
             enable_polymarket=_env_bool("WP_ENABLE_POLYMARKET", False),
             polymarket_legal_ack=_env("WP_POLYMARKET_LEGAL_ACK"),
             max_order_notional=_env_float("WP_MAX_ORDER_NOTIONAL", 25.0),

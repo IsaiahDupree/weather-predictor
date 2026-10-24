@@ -77,9 +77,9 @@ class RiskEngine:
         vol_gate_pass: Optional[bool] = None,
         book_depth: Optional[float] = None,
         is_arbitrage: bool = False,
-        side: str = "buy",
     ) -> RiskCheckResult:
-        """Validate an order against limits + portfolio state."""
+        """Validate an order against limits + portfolio state. ``portfolio`` keys:
+        ``equity``, ``exposure_total`` ($), ``exposure_by_event`` ({event: $})."""
         if not self.limits.enabled:
             return self._ok()
 
@@ -92,16 +92,7 @@ class RiskEngine:
         if not (0.0 < price <= 1.0):
             return self._reject("INVALID_PRICE", f"Price must be in (0,1], got {price}")
 
-        is_exit = side.lower() == "sell"
-
-        if not self.limits.entries_enabled and not is_exit:
-            return self._reject(
-                "ENTRY_DISABLED",
-                "New entries are disabled; exits remain allowed",
-                {"side": side},
-            )
-
-        if not resolution_known and not is_exit:
+        if not resolution_known:
             return self._reject(
                 "FORBIDDEN_EVENT",
                 f"{symbol}: resolution station unknown — refusing to trade an "
@@ -111,7 +102,7 @@ class RiskEngine:
 
         notional = qty * price
 
-        if not is_exit and notional > self.limits.max_order_notional:
+        if notional > self.limits.max_order_notional:
             return self._reject(
                 "ORDER_NOTIONAL",
                 f"Order notional ${notional:,.2f} exceeds max ${self.limits.max_order_notional:,.2f}",
@@ -152,7 +143,7 @@ class RiskEngine:
             )
 
         # Volatility gate (near-expiry scalps). Arbitrage is exempt (risk-free).
-        if vol_gate_pass is False and not is_arbitrage and not is_exit:
+        if vol_gate_pass is False and not is_arbitrage:
             return self._reject(
                 "VOL_GATE",
                 "Volatility gate failed: margin to threshold < k*sigma_remaining",
@@ -160,7 +151,7 @@ class RiskEngine:
             )
 
         # Liquidity gate — order must not exceed a fraction of top-of-book depth.
-        if book_depth is not None and book_depth > 0 and not is_exit:
+        if book_depth is not None and book_depth > 0:
             if qty > self.limits.liquidity_depth_frac * book_depth:
                 return self._reject(
                     "LIQUIDITY",
@@ -170,34 +161,31 @@ class RiskEngine:
                 )
 
         # Event-concentration gate
-        exposure_delta = -notional if is_exit else notional
-
-        if event_ticker and not is_exit:
+        if event_ticker:
             exposure_by_event = portfolio.get("exposure_by_event", {}) or {}
             current = float(exposure_by_event.get(event_ticker, 0.0) or 0.0)
-            if current + exposure_delta > self.limits.max_position_per_event:
+            if current + notional > self.limits.max_position_per_event:
                 return self._reject(
                     "EVENT_CONCENTRATION",
-                    f"Event {event_ticker} exposure ${current + exposure_delta:,.2f} exceeds "
+                    f"Event {event_ticker} exposure ${current + notional:,.2f} exceeds "
                     f"max ${self.limits.max_position_per_event:,.2f}",
-                    {"event": event_ticker, "current": current, "add": exposure_delta},
+                    {"event": event_ticker, "current": current, "add": notional},
                 )
 
         # Total-exposure gate
         exposure_total = float(portfolio.get("exposure_total", 0.0) or 0.0)
-        projected_exposure = max(0.0, exposure_total + exposure_delta)
-        if not is_exit and projected_exposure > self.limits.max_total_exposure:
+        if exposure_total + notional > self.limits.max_total_exposure:
             return self._reject(
                 "TOTAL_EXPOSURE",
-                f"Total exposure ${projected_exposure:,.2f} exceeds "
+                f"Total exposure ${exposure_total + notional:,.2f} exceeds "
                 f"max ${self.limits.max_total_exposure:,.2f}",
-                {"exposure_total": exposure_total, "add": exposure_delta,
+                {"exposure_total": exposure_total, "add": notional,
                  "limit": self.limits.max_total_exposure},
             )
 
         self._order_times.append(now)
         return RiskCheckResult(ok=True, code="ok", message="approved",
-                               details={"notional": notional, "side": side})
+                               details={"notional": notional})
 
     # ------------------------------------------------------------------
 

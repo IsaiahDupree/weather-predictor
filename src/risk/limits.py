@@ -32,7 +32,6 @@ class RiskLimits:
     bankroll_usd: float = 1000.0
     forbidden_events: List[str] = field(default_factory=list)
     enabled: bool = True
-    entries_enabled: bool = True
 
     @property
     def max_total_exposure(self) -> float:
@@ -58,7 +57,6 @@ class RiskLimits:
             vol_gate_k=config.vol_gate_k,
             liquidity_depth_frac=config.liquidity_depth_frac,
             bankroll_usd=config.bankroll_usd,
-            entries_enabled=config.enable_entries,
         )
 
 

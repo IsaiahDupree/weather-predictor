@@ -8,10 +8,9 @@ locally so this is a standalone repo).
 
 ## Core idea
 Trade `EV = q − p` on binary YES/NO outcome tokens (price ∈ [0,1] = probability,
-resolves $1/$0). Forecasting is a first-class candidate edge, not just a
-defensive input: prove it by comparing forecast-derived `q` against executable
-market prices and settlements after fees/rebates. See `README.md` for the
-evidence standard and `DESIGN.md` for the full build spec.
+resolves $1/$0). The edge is the *gap* between raw real-world weather data and
+how the market prices it (and the *timing* of that gap closing). See `README.md`
+for the weather-API table and `DESIGN.md` for the full build spec.
 
 ## Layout (package root = `src/`, imports use `src.` prefix)
 - `config.py` — env → frozen `Config` (`get_config()`). Mode default = **sim**.

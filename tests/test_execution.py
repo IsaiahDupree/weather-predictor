@@ -5,7 +5,7 @@ from pathlib import Path
 import pytest
 
 from src.execution.adapters.sim import SimAdapter
-from src.execution.order import Mode, Order, Outcome, Side
+from src.execution.order import Mode, Order, Outcome
 from src.execution.router import ExecutionRouter
 from src.risk.kill_switch import KillSwitch
 from src.risk.limits import RiskLimits
@@ -90,19 +90,3 @@ async def test_idempotency_dedup(tmp_path):
     first = await r.submit(o, ref_price=0.5)
     again = await r.submit(o, ref_price=0.5)         # same client_order_id
     assert first is again                            # returns the same order, no double-fill
-
-
-async def test_entries_can_be_disabled_without_blocking_sells(tmp_path):
-    r, sim, _ = _router(tmp_path, entries_enabled=False, max_order_notional=2)
-
-    buy = Order(symbol="X", side=Side.BUY, qty=1, limit_price=0.5, mode=Mode.SIM, broker="sim")
-    buy = await r.submit(buy, ref_price=0.5, event_ticker="E")
-    assert buy.status.value == "rejected"
-    assert buy.metadata["risk_code"] == "ENTRY_DISABLED"
-
-    seed = Order(symbol="X", side=Side.BUY, qty=10, limit_price=0.2, mode=Mode.SIM, broker="sim")
-    sim._fill(seed, 0.2)
-    sell = Order(symbol="X", side=Side.SELL, qty=10, limit_price=0.8, mode=Mode.SIM, broker="sim")
-    sell = await r.submit(sell, ref_price=0.8, event_ticker="E", resolution_known=False, vol_gate_pass=False)
-    assert sell.status.value == "filled"
-    assert abs(sim.realized_pnl() - 6.0) < 1e-9

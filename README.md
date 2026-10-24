@@ -15,30 +15,10 @@ project — the same `BaseAdapter` contract, unified `Order`, `Strategy`/`Signal
 base, `ExecutionRouter`, and `RiskEngine` — specialized for binary YES/NO
 outcome tokens (priced 0–1 = probability, resolving to $1 or $0).
 
-> **Current thesis:** weather data, forecast distributions, market prices,
-> resolution rules, liquidity, fees, and rebates are separate inputs. The edge is
-> proven only when a forecast-derived probability `q` beats the executable market
-> price `p` after costs, or when a structural incentive such as a rebate creates
-> positive expected value. Do not assume weather data is merely defensive; measure
-> whether it predicts the winning bucket before the market fully converges.
-
-### Evidence standard for forecast edge
-
-This repo does not yet contain enough settled, timestamped forecast-vs-market
-history to justify a permanent claim that "weather data is a defensive input,
-not the edge itself." The local cross-venue samples are useful as diagnostics,
-but they are not a calibrated proof set. In `data/cross_venue/settled.jsonl`,
-the June 13, 2026 settlement shows several high-scored flags losing after the
-forecast/fair-probability assumptions missed the realized high. That is evidence
-for stricter calibration, not evidence against forecasting.
-
-The bot should treat temperature forecasting as a first-class candidate edge:
-record each snapshot's market buckets, reward/rebate terms, forecast
-distribution, raw station observations, chosen winner, executable bid/ask, and
-later settlement. Then score Brier/log-loss and tradable PnL by time-to-close,
-weather regime, station, and bucket width. A rebate filter can choose where to
-play, but it should not replace the model that estimates which bucket will win
-or when losers should be sold before convergence.
+> **The thesis (from the source articles):** you are not predicting the weather.
+> You are trading the *gap* between real-world data and how the market prices it
+> — and the *timing* of that gap's closure. Weather markets and 5-minute crypto
+> markets are the same trade: `EV = q − p`. Different data sources, same math.
 
 ---
 

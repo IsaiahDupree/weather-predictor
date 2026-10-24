@@ -118,7 +118,6 @@ class ExecutionRouter:
             vol_gate_pass=vol_gate_pass,
             book_depth=book_depth,
             is_arbitrage=is_arbitrage,
-            side=order.side.value,
         )
         if not check.ok:
             order.status = OrderStatus.REJECTED
