@@ -27,3 +27,6 @@ data/
 .playwright-mcp/
 *.app/
 /files.zip
+
+# Generated research plot stays with local runtime artifacts
+/strategy-report.png
